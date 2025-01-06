@@ -1,10 +1,34 @@
+import MovieList from "../components/MovieList";
 import { useParams } from "react-router";
 import { useState, useEffect } from "react";
 import styled from "styled-components";
 import SearchLogo from "../assets/images/free-icon-search-interface-symbol-54481.png";
+import axios from "axios";
 const Search = () => {
   const param = useParams();
   const [user, setUser] = useState("");
+  const [movie, setMovie] = useState("");
+  const [movies, setMovies] = useState([]);
+  const key = "4f36a5dad2ed4e57cefe009b4b594fbb";
+
+  const fetchMovie = async () => {
+    await axios
+      .get("https://api.themoviedb.org/3/search/movie", {
+        params: {
+          api_key: key,
+          query: movie,
+          language: "ko-KR",
+        },
+      })
+      .then((response) => {
+        console.log(response.data.results);
+        setMovies(response.data.results);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
   useEffect(() => {
     setUser(param.name);
     console.log("param값(userName):", user);
@@ -13,12 +37,22 @@ const Search = () => {
     <SearchPage>
       <SearchTit>{user}님의 올영은 무엇인가요?</SearchTit>
       <MovieSearch>
-        <MovieSearchInput placeholder="영화제목을 입력해주세요." />
-        <SearchButton>
+        <MovieSearchInput
+          placeholder="영화제목을 입력해주세요."
+          value={movie}
+          onChange={(e) => {
+            setMovie(e.target.value);
+          }}
+        />
+        <SearchButton onClick={fetchMovie}>
           <SearchBtnLogo src={SearchLogo} />
         </SearchButton>
       </MovieSearch>
-      <SearchResult></SearchResult>
+      <SearchResult>
+        {movies.map((item) => {
+          return <MovieList key={item.id} item={item} />;
+        })}
+      </SearchResult>
     </SearchPage>
   );
 };
@@ -66,4 +100,7 @@ const SearchBtnLogo = styled.img`
   height: 50px;
 `;
 
-const SearchResult = styled.div``;
+const SearchResult = styled.div`
+  width: 100%;
+  display: flex;
+`;
